@@ -14,13 +14,14 @@ var {
 	TextInput
 } = React;
 
+
 class SearchPage extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			searchString: '',
 			isLoading: false,
-			message: ''
+			message: '',
 		}
 	}
 	render() {
@@ -32,19 +33,18 @@ class SearchPage extends Component {
 		return(
 			<View style={styles.container}>
 				<Text style={styles.description}>
-					Search for pets to adopt!
+					Select area to search for pets!
+				</Text>
+				<Text style={styles.description}>
+					BETA: only have the Atlanta location
 				</Text>
 				<View style={styles.flowRight}>
-					 <TextInput 
-					 	style={styles.searchInput}
-					 	value={this.state.searchString}
-					 	onChange={this.onSearchTextChanged.bind(this)}
-					 	placeholder='Search by zipcode'/>
+		
 					 <TouchableHighlight style={styles.button}
 					 	underlayColor='#99D9F4'
 					 	onPress={this.onSearchPressed.bind(this)}>
 					 	<Text style={styles.buttonText}>
-					 		Search
+					 		Search Atlanta Shelters
 					 	</Text>
 					 </TouchableHighlight>
 				</View>

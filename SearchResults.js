@@ -11,7 +11,7 @@ var {
 	Image,
 	Component,
 	TouchableHighlight,
-	ListView
+	ListView,
 } = React;
 
 
@@ -37,37 +37,104 @@ class SearchResults extends Component {
 		return (
 			<TouchableHighlight onPress={() => this.rowPressed(rowData)}
 				underlayColor='#dddddd'>
-				<View>
-					<View style={styles.rowContainer}>
-						<Image style={styles.thumb} source={{uri: rowData.photo}} />
-						<View style={styles.textContainer}>
-							<Text style={styles.title}>
-								{rowData.name}
-							</Text>
-						</View>
-						<View style={styles.separator}/>
+				<View style={styles.row}>
+					<Image style={styles.cellImage} source={{uri: rowData.photo}} />
+					<View style={styles.textContainer}>
+						<Text style={styles.title} numberOfLines={2}>
+							{rowData.name}
+						</Text>
+						<Text style={styles.species} numberOfLines={1}>
+							{rowData.species}
+						</Text>
+						<Text style={styles.species} numberOfLines={1}>
+							{rowData.agegroup}
+						</Text>
+						<Text style={styles.species} numberOfLines={1}>
+							{rowData.sex}
+						</Text>
+						<Text style={styles.species} numberOfLines={1}>
+							{rowData.primarybreed}
+						</Text>
 					</View>
+					<View style={styles.separator}/>
 				</View>
 			</TouchableHighlight>
 		); 
 	}
 
 	rowPressed(pet) {
-
-		this.props.navigator.push({
-			title: "Pet Details",
-			component: PetDetails,
-			passProps: {pet : pet}
-		});
+		fetch('http://www.petango.com/webservices/adoptablesearch/'+
+			'wsAdoptableAnimalDetails.aspx?id=' +
+			pet.id) // check the status of the request
+			.then(response =>  {
+				var data = parseHtml(response._bodyText)
+				data.name = pet.name;
+				data.photo = pet.photo;
+				return data;
+			})
+			.then(json => 
+				this.props.navigator.push({
+					title: "Pet Details",
+					component: PetDetails,
+					passProps: {pet: json}
+				})
+			)
+			.catch(exception =>  console.log(exception));
 	}
 }
 
+function parseHtml(html) {
+	html = html.substring(html.lastIndexOf('AnimalID') + 10);
+	var id = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Species') + 9);
+	var species = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Breed') + 7);
+	var breed = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Age') + 5);
+	var age = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Sex') + 5);
+	var sex = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Size') + 6);
+	var size = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Color') + 7);
+	var color = html.slice(0, html.indexOf('</span>'));
+
+	//add altered spayed/neutered
+
+
+	html = html.substring(html.lastIndexOf('Declawed') + 10);
+	var declawed = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Site') + 6);
+	var site = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Location') + 10);
+	var location = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('IntakeDate') + 12);
+	var intakeDate = html.slice(0, html.indexOf('</span>'));
+	html = html.substring(html.lastIndexOf('Price') + 7);
+	var price = html.slice(0, html.indexOf('</span>'));
+	return  {
+		id: id,
+		species: species,
+		breed: breed,
+		age: age,
+		sex: sex,
+		size: size,
+		color: color,
+		declawed: declawed,
+		site: site,
+		location: location,
+		intakeDate: intakeDate,
+		price: price
+	};
+
+}
+
 var styles = StyleSheet.create({
-	thumb: {
-		width: 120,
-		height: 120,
-		borderRadius: 60,
-		marginRight: 10
+	cellImage: {
+		backgroundColor: '#dddddd',
+    	height: 93,
+    	marginRight: 10,
+    	width: 60,
 	},
 	textContainer: {
 		flex: 1
@@ -77,13 +144,21 @@ var styles = StyleSheet.create({
 		backgroundColor: '#dddddd'
 	},
 	title: {
-		fontSize: 20,
-		color: '#656565'
+		flex: 1,
+    	fontSize: 16,
+    	fontWeight: '500',
+    	marginBottom: 2,
 	},
-	rowContainer: {
+	row: {
+		alignItems: 'center',
+		backgroundColor: 'white',
 		flexDirection: 'row',
-		padding: 10
+		padding: 5
 	},
+	species: {
+		color: '#999999',
+		fontSize: 12,
+	}
 });
 
 
